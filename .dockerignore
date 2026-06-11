@@ -1,0 +1,18 @@
+# Ignore everything first
+*
+
+# But explicitly include the files we need
+!data_analysis.py
+!All_Diets.csv
+!Dockerfile
+
+# Also ignore these common problematic files
+**/azurite-data/**
+**/simulated_nosql/**
+**/*.json
+**/node_modules/**
+**/__pycache__/**
+**/*.log
+**.git*
+**/.vscode/**
+**/.idea/**

@@ -1,0 +1,201 @@
+{
+    "processed_at": "2026-06-11 09:31:01.981128",
+    "total_recipes": 7806,
+    "highest_protein_diet": {
+        "diet_type": "Keto",
+        "avg_protein_g": 101.27
+    },
+    "most_common_cuisine_per_diet": {
+        "Dash": "american",
+        "Keto": "american",
+        "Mediterranean": "mediterranean",
+        "Paleo": "american",
+        "Vegan": "american"
+    },
+    "avg_macros_by_diet": [
+        {
+            "Diet_type": "Dash",
+            "Protein(g)": 69.28,
+            "Carbs(g)": 160.54,
+            "Fat(g)": 101.15
+        },
+        {
+            "Diet_type": "Keto",
+            "Protein(g)": 101.27,
+            "Carbs(g)": 57.97,
+            "Fat(g)": 153.12
+        },
+        {
+            "Diet_type": "Mediterranean",
+            "Protein(g)": 101.11,
+            "Carbs(g)": 152.91,
+            "Fat(g)": 101.42
+        },
+        {
+            "Diet_type": "Paleo",
+            "Protein(g)": 88.67,
+            "Carbs(g)": 129.55,
+            "Fat(g)": 135.67
+        },
+        {
+            "Diet_type": "Vegan",
+            "Protein(g)": 56.16,
+            "Carbs(g)": 254.0,
+            "Fat(g)": 103.3
+        }
+    ],
+    "top_5_protein_recipes": [
+        {
+            "Diet_type": "Paleo",
+            "Recipe_name": "Swiss Paleo\u2019s Homemade Italian & Chorizo Sausage",
+            "Protein(g)": 1273.61
+        },
+        {
+            "Diet_type": "Dash",
+            "Recipe_name": "Salmon Mousse",
+            "Protein(g)": 1239.47
+        },
+        {
+            "Diet_type": "Dash",
+            "Recipe_name": "Homemade Turkey Alphabet Soup",
+            "Protein(g)": 1190.35
+        },
+        {
+            "Diet_type": "Paleo",
+            "Recipe_name": "Turkey Soup",
+            "Protein(g)": 1142.58
+        },
+        {
+            "Diet_type": "Keto",
+            "Recipe_name": "Sara Louise's Keto Smoked Holiday Turkey",
+            "Protein(g)": 1092.0
+        },
+        {
+            "Diet_type": "Dash",
+            "Recipe_name": "Barbecue Chicken Legs",
+            "Protein(g)": 1017.25
+        },
+        {
+            "Diet_type": "Mediterranean",
+            "Recipe_name": "Fava Bean Salad with Mountain Ham and Mint",
+            "Protein(g)": 970.31
+        },
+        {
+            "Diet_type": "Dash",
+            "Recipe_name": "12th Man Hot Wings",
+            "Protein(g)": 807.03
+        },
+        {
+            "Diet_type": "Keto",
+            "Recipe_name": "Mayo Free Deviled Eggs (Paleo, Whole30 + Keto)",
+            "Protein(g)": 766.99
+        },
+        {
+            "Diet_type": "Keto",
+            "Recipe_name": "Low Carb Beef and Cheddar Cauliflower Bake, THM S meal, Keto too",
+            "Protein(g)": 710.81
+        },
+        {
+            "Diet_type": "Paleo",
+            "Recipe_name": "Orange and Five-Spice Roasted Chicken Legs | Keto, Paleo",
+            "Protein(g)": 677.22
+        },
+        {
+            "Diet_type": "Keto",
+            "Recipe_name": "Orange and Five-Spice Roasted Chicken Legs | Keto, Paleo",
+            "Protein(g)": 677.22
+        },
+        {
+            "Diet_type": "Keto",
+            "Recipe_name": "Low Carb Salmon Cakes (Keto, Grain Free)",
+            "Protein(g)": 656.95
+        },
+        {
+            "Diet_type": "Mediterranean",
+            "Recipe_name": "Poached Salt Cod with Vegetables and Garlic Mayonnaise",
+            "Protein(g)": 656.65
+        },
+        {
+            "Diet_type": "Mediterranean",
+            "Recipe_name": "Mediterranean Pizza",
+            "Protein(g)": 628.29
+        },
+        {
+            "Diet_type": "Mediterranean",
+            "Recipe_name": "Orange and Cumin Leg of Lamb with Roasted Tomatoes and Garlic Recipe",
+            "Protein(g)": 607.03
+        },
+        {
+            "Diet_type": "Paleo",
+            "Recipe_name": "Vietnamese Pho Pressure Cooker (Noodle Soup)",
+            "Protein(g)": 602.91
+        },
+        {
+            "Diet_type": "Mediterranean",
+            "Recipe_name": "Meatballs Braised with Kale",
+            "Protein(g)": 531.48
+        },
+        {
+            "Diet_type": "Dash",
+            "Recipe_name": "Jazzed Up Turkey Tetrazzini",
+            "Protein(g)": 517.47
+        },
+        {
+            "Diet_type": "Paleo",
+            "Recipe_name": "Paleo Slow Cooker Honey Garlic Chicken and Vegetables recipes",
+            "Protein(g)": 501.65
+        },
+        {
+            "Diet_type": "Vegan",
+            "Recipe_name": "Tangy Teriyaki Salmon",
+            "Protein(g)": 431.1
+        },
+        {
+            "Diet_type": "Vegan",
+            "Recipe_name": "Mini nut roasts with candied carrots",
+            "Protein(g)": 421.72
+        },
+        {
+            "Diet_type": "Vegan",
+            "Recipe_name": "Vegan Pinto Bean Chili",
+            "Protein(g)": 381.55
+        },
+        {
+            "Diet_type": "Vegan",
+            "Recipe_name": "Vegan Chili and Cornbread Casserole",
+            "Protein(g)": 319.54
+        },
+        {
+            "Diet_type": "Vegan",
+            "Recipe_name": "Kentucky fried seitan",
+            "Protein(g)": 317.43
+        }
+    ],
+    "avg_ratios_by_diet": [
+        {
+            "Diet_type": "Dash",
+            "Protein_to_Carbs_ratio": 1.4914,
+            "Carbs_to_Fat_ratio": 45.221
+        },
+        {
+            "Diet_type": "Keto",
+            "Protein_to_Carbs_ratio": 4.1215,
+            "Carbs_to_Fat_ratio": 1.3124
+        },
+        {
+            "Diet_type": "Mediterranean",
+            "Protein_to_Carbs_ratio": 1.7792,
+            "Carbs_to_Fat_ratio": 3.4419
+        },
+        {
+            "Diet_type": "Paleo",
+            "Protein_to_Carbs_ratio": 2.0585,
+            "Carbs_to_Fat_ratio": 3.759
+        },
+        {
+            "Diet_type": "Vegan",
+            "Protein_to_Carbs_ratio": 0.3325,
+            "Carbs_to_Fat_ratio": 10.9401
+        }
+    ]
+}

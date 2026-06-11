@@ -1,0 +1,5 @@
+version: '3.8'
+services:
+  diet_analysis:
+    build: .
+    container_name: diet_analysis_app
