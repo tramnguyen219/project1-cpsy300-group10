@@ -123,10 +123,10 @@ jobs:
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: |
           echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
-          docker tag diet-analysis:latest ${{ secrets.DOCKER_USERNAME }}/diet-analysis:latest
-          docker tag diet-analysis:${{ github.sha }} ${{ secrets.DOCKER_USERNAME }}/diet-analysis:${{ github.sha }}
-          docker push ${{ secrets.DOCKER_USERNAME }}/diet-analysis:latest
-          docker push ${{ secrets.DOCKER_USERNAME }}/diet-analysis:${{ github.sha }}
+          docker tag diet-analysis:latest karanp2002/diet-analysis:latest
+          docker tag diet-analysis:${{ github.sha }} karanp2002/diet-analysis:${{ github.sha }}
+          docker push karanp2002/diet-analysis:latest
+          docker push karanp2002/diet-analysis:${{ github.sha }}
           echo "✔ Image pushed to Docker Hub"
       # =========================
       # 11. Final Summary
