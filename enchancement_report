@@ -1,0 +1,65 @@
+Task –5 
+
+The two enhancements we have choosed are  
+
+Multi-stage Docker builds  
+
+Data processing optimization 
+
+ 
+
+1)Mutli-stage Docker builds (we have made changes in the Task 2) 
+
+2)  Research that was conducted 
+
+To enhance this project, I conducted research on strategies for building smaller and efficient Docker container images. The technique that is often suggested for accomplishing this objective involves the concept of multi-stage Docker builds. Traditional Docker build strategies involve including all build dependencies within a single image, resulting in a larger image. With the implementation of multi-stage Docker build strategy, the application code and dependencies are the only elements that will be included in the image. 
+
+3) Improvements that were made 
+
+For Task 2, it was necessary to use Docker for packaging the data processing application in Python. At first, the Dockerfile used only one-stage building using python:3.9-slim image. It was suggested that in order to optimize the process, the use of multistage Docker building should be implemented. In the proposed technique, dependencies are installed at the building stage, and the needed application is placed in the runtime stage only. 
+
+ 4)The impacts and the benefits  
+
+ 
+
+Smaller images sizes: As a result of having only necessary runtime components in the image, multi-stage builds create smaller images compared to the images created using single-stage builds. Smaller images mean faster image downloads, lower storage capacity needed, and faster container startup. 
+
+Enhanced security: The final image becomes safer as there is no need to add all the build tools and dependencies that are not required after building the application to the final image. 
+
+Maintainability: By separating the build process and runtime process in your application, you can easily modify or update one of them without affecting the other part. This allows easier maintenance of the image. 
+
+Improved build speed: By creating smaller images and making better use of Docker's build cache, the process becomes faster since you do not have to build layers that already exist from previous images if the build dependencies or code remains the same. 
+
+Parallel builds: The process of building an image in multi-stage builds allows parallelizing the build process. 
+
+Reference -  Jayaprakash, A. (2024, September 12). Understanding multi-stage Docker builds. Blacksmith. https://www.blacksmith.sh/blog/understanding-multi-stage-docker-builds  
+
+ 
+
+1)   Research that was conducted ( we made the changes in the task 1) 
+
+2)Research that was conducted  
+
+The approach to this enhancement entailed the exploration of ways to increase performance and efficiency when it comes to data processing in applications utilizing Python. In this regard, considering that Task 1 involves the use of All_Diets.csv data with the help of Pandas, it was vital to study how data cleaning, reduction of duplication of calculation operations, and effective aggregation can increase the efficiency of the program's operation. 
+
+3) Improvements that were made 
+
+In Task 1, there was the need to work on nutritional information as well as extract information from All_Diets.csv. To ensure efficiency, I suggested improving the data processing process through addressing any missing values prior to calculations, using effective methods provided by the Pandas library like groupby(), and avoiding duplication of calculations whenever possible. The information computed, including Protein-to-Carbs ratio and Carbs-to-Fat ratio, needed to be computed only once and used in all the subsequent stages. 
+
+ 
+
+4) The impacts and the benefits 
+
+Improving Application Execution Time: Optimal code execution makes data analysis faster, thus decreasing the time needed to get the necessary conclusions about the nutrients contained in the provided data set. Better performance means better user experience and improved use of computing resources. 
+
+Saving Resources: The application will use less computing power by avoiding unnecessary computations. It allows for saving on costs associated with application work. 
+
+Scalability: Efficient data processing ensures better scalability of the application. The application will be able to handle large amounts of nutritional data with ease. 
+
+Ensuring High-Quality Data: Data validation and cleaning eliminate possible errors in further calculations and improve accuracy of data visualizations. 
+
+Resource Saving: Code optimization decreases the load on the CPU and RAM, ensuring efficient work of the application. 
+
+Reference- PureLogics. (2025, September 4). 7 database optimization techniques every developer should know. https://purelogics.com/7-database-optimization-techniques/ 
+
+ 

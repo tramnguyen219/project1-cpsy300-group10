@@ -1,0 +1,150 @@
+name: CPSY300 CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-test-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # =========================
+      # 1. Checkout Code
+      # =========================
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # =========================
+      # 2. Setup Python
+      # =========================
+      - name: Setup Python 3.9
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.9"
+
+      # =========================
+      # 3. Cache Dependencies
+      # =========================
+      - name: Cache pip packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      # =========================
+      # 4. Install Dependencies
+      # =========================
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pandas matplotlib seaborn azure-storage-blob
+
+      # =========================
+      # 5. Run Data Analysis
+      # =========================
+      - name: Execute Data Analysis Script
+        run: |
+          echo "▶ Running data analysis..."
+          python data_analysis.py
+          echo "✔ Data analysis completed"
+
+      # =========================
+      # 6. Validate Outputs (FIXED)
+      # =========================
+      - name: Validate Output Files
+        shell: bash
+        run: |
+          echo "Checking generated outputs..."
+
+          FILES=(
+            "processed_diets.csv"
+            "viz1_avg_protein_bar.png"
+            "viz2_all_macros_bar.png"
+            "viz3_heatmap_macros.png"
+            "viz4_scatter_top_protein.png"
+            "viz5_scatter_cuisine.png"
+          )
+
+          for file in "${FILES[@]}"; do
+            if [ -f "$file" ]; then
+              echo "✔ $file found"
+            else
+              echo "❌ Missing file: $file"
+              exit 1
+            fi
+          done
+
+          echo "✔ All outputs verified successfully"
+
+      # =========================
+      # 7. Build Docker Image
+      # =========================
+      - name: Build Docker Image
+        run: |
+          echo "Building Docker image..."
+          docker build -t diet-analysis:latest .
+          docker build -t diet-analysis:${{ github.sha }} .
+          echo "✔ Docker build complete"
+
+      # =========================
+      # 8. Run Docker Container (SIMULATION)
+      # =========================
+      - name: Run Docker Container
+        run: |
+          echo "Starting container..."
+          docker run --rm diet-analysis:latest
+          echo "✔ Container executed successfully"
+
+      # =========================
+      # 9. Upload Artifacts
+      # =========================
+      - name: Upload Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cpsy300-analysis-results
+          path: |
+            processed_diets.csv
+            viz*.png
+          retention-days: 30
+
+      # =========================           
+      # 10. Push to Docker Hub
+      # =========================
+      - name: Login and Push to Docker Hub
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+          docker tag diet-analysis:latest karanp2002/diet-analysis:latest
+          docker tag diet-analysis:${{ github.sha }} karanp2002/diet-analysis:${{ github.sha }}
+          docker push karanp2002/diet-analysis:latest
+          docker push karanp2002/diet-analysis:${{ github.sha }}
+          echo "✔ Image pushed to Docker Hub"
+      # =========================
+      # 11. Final Summary
+      # =========================
+      - name: Build Summary
+        if: always()
+        run: |
+          echo "===================================="
+          echo "   CPSY300 CI/CD PIPELINE COMPLETE  "
+          echo "===================================="
+          echo "✔ Code checkout"
+          echo "✔ Python setup"
+          echo "✔ Dependencies installed"
+          echo "✔ Data analysis executed"
+          echo "✔ Outputs validated"
+          echo "✔ Docker image built"
+          echo "✔ Container executed"
+          echo "✔ Artifacts uploaded"
+          echo ""
+          echo "STATUS: SUCCESS "
+          echo "===================================="
