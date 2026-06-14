@@ -5,6 +5,7 @@
 !data_analysis.py
 !All_Diets.csv
 !Dockerfile
+!requirements.txt
 
 # Also ignore these common problematic files
 **/azurite-data/**

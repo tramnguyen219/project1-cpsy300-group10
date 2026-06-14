@@ -20,32 +20,42 @@ print("=" * 50)
 print("\nMissing values before cleaning:")
 print(df.isnull().sum())
 
-numeric_columns = ["Protein(g)", "Carbs(g)", "Fat(g)"]
-
-for col in numeric_columns:
-    if df[col].isnull().any():
-        mean_value = df[col].mean()
-        df[col].fillna(mean_value, inplace=True)
-        print(f"Filled {col} missing values with mean: {mean_value:.2f}")
+# ── ENHANCEMENT: Clean data more efficiently ──
+df[['Protein(g)', 'Carbs(g)', 'Fat(g)']] = df[['Protein(g)', 'Carbs(g)', 'Fat(g)']].fillna(0)
 
 print("\nMissing values after cleaning:")
 print(df.isnull().sum())
 
 print("\n" + "=" * 50)
+print("ANALYSIS 5: Creating New Metrics")
+print("=" * 50)
+
+# ── ENHANCEMENT: Calculate ratios once early, reuse grouped data ──
+df['Protein_to_Carbs_ratio'] = df['Protein(g)'] / df['Carbs(g)'].replace(0, np.nan)
+df['Carbs_to_Fat_ratio']     = df['Carbs(g)']   / df['Fat(g)'].replace(0, np.nan)
+
+df.to_csv("processed_diets.csv", index=False)
+print("Processed data saved to processed_diets.csv")
+
+# ── ENHANCEMENT: Reuse grouped data instead of grouping multiple times ──
+grouped = df.groupby('Diet_type')
+
+print("\n" + "=" * 50)
 print("ANALYSIS 1: Average Macronutrients by Diet Type")
 print("=" * 50)
 
-avg_macros = df.groupby("Diet_type")[["Protein(g)", "Carbs(g)", "Fat(g)"]].mean()
+avg_macros = grouped[['Protein(g)', 'Carbs(g)', 'Fat(g)']].mean()
 print(avg_macros)
 
 print("\n" + "=" * 50)
 print("ANALYSIS 2: Top 5 Protein-Rich Recipes per Diet Type")
 print("=" * 50)
 
+# ── ENHANCEMENT: Use nlargest for better performance ──
 top_protein = (
-    df.sort_values("Protein(g)", ascending=False)
-    .groupby("Diet_type")
-    .head(5)
+    df.nlargest(100, 'Protein(g)')
+      .groupby('Diet_type')
+      .head(5)
 )
 
 print(top_protein[["Diet_type", "Recipe_name", "Protein(g)"]])
@@ -64,26 +74,11 @@ print("\n" + "=" * 50)
 print("ANALYSIS 4: Most Common Cuisines per Diet Type")
 print("=" * 50)
 
-most_common_cuisines = df.groupby("Diet_type")["Cuisine_type"].agg(
+most_common_cuisines = grouped["Cuisine_type"].agg(
     lambda x: x.mode()[0] if len(x.mode()) > 0 else "N/A"
 )
 
 print(most_common_cuisines)
-
-print("\n" + "=" * 50)
-print("ANALYSIS 5: Creating New Metrics")
-print("=" * 50)
-
-df["Protein_to_Carbs_ratio"] = (
-    df["Protein(g)"] / df["Carbs(g)"].replace(0, np.nan)
-)
-
-df["Carbs_to_Fat_ratio"] = (
-    df["Carbs(g)"] / df["Fat(g)"].replace(0, np.nan)
-)
-
-df.to_csv("processed_diets.csv", index=False)
-print("Processed data saved to processed_diets.csv")
 
 print("\n" + "=" * 50)
 print("CREATING VISUALIZATIONS")
