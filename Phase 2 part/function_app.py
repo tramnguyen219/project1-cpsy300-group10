@@ -45,36 +45,48 @@ def GetNutritionalInsights(req: func.HttpRequest) -> func.HttpResponse:
                 )
 
         avg_macros = df.groupby('Diet_type')[numeric_cols].mean().round(2)
-        top_protein = df.sort_values('Protein(g)', ascending=False).groupby('Diet_type').head(5)
+       
+        top_protein = df.nlargest(5, 'Protein(g)')
         highest_protein_diet = avg_macros['Protein(g)'].idxmax()
-        most_common_cuisine = (
-            df.groupby('Diet_type')['Cuisine_type']
-            .agg(lambda x: x.value_counts().idxmax())
-        )
+        
+        
+        cuisine_distribution = (
+    df['Cuisine_type']
+    .value_counts()
+    .reset_index()
+)
 
-        execution_time_ms = round((time.time() - start_time) * 1000, 2)
+    cuisine_distribution.columns = [
+    'Cuisine_type',
+    'Count'
+]
+        
 
-        result = {
+
+
+    execution_time_ms = round((time.time() - start_time) * 1000, 2)
+
+    result = {
             "processed_at": datetime.utcnow().isoformat() + "Z",
             "source": f"azure-blob://{CONTAINER}/{BLOB_NAME}",
             "execution_time_ms": execution_time_ms,
             "avg_macros_per_diet": avg_macros.reset_index().to_dict(orient='records'),
             "top_protein_diet": highest_protein_diet,
-            "most_common_cuisine_per_diet": most_common_cuisine.reset_index().to_dict(orient='records'),
+            "cuisine_distribution": cuisine_distribution.to_dict(orient='records'),
             "top_5_protein_recipes": top_protein[['Diet_type', 'Recipe_name', 'Protein(g)']].to_dict(orient='records'),
             "row_count": len(df)
         }
 
-        return func.HttpResponse(
+    return func.HttpResponse(
             json.dumps(result, indent=2),
             status_code=200,
             mimetype="application/json",
             headers={"Access-Control-Allow-Origin": "*"}
         )
 
-    except Exception as e:
+        except Exception as e:
         logging.error(f"Error processing request: {str(e)}")
-        return func.HttpResponse(
+    return func.HttpResponse(
             json.dumps({"error": str(e)}),
             status_code=500,
             mimetype="application/json",
