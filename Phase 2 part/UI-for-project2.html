@@ -1,0 +1,232 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nutritional Insights</title>
+    <!-- Tailwind CSS CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.0.0/dist/tailwind.min.css" rel="stylesheet">
+    <!-- Chart.js for bar / pie / scatter charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body class="bg-gray-100">
+
+    <header class="bg-blue-600 p-4 text-white">
+        <h1 class="text-3xl font-semibold">Nutritional Insights</h1>
+        <p id="statusLine" class="text-sm text-blue-100 mt-1">Not loaded yet — click "Get Nutritional Insights" below.</p>
+    </header>
+
+    <main class="container mx-auto p-6">
+
+        <section class="mb-8">
+            <h2 class="text-2xl font-semibold mb-4">Explore Nutritional Insights</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+                <div class="bg-white p-4 shadow-lg rounded-lg">
+                    <h3 class="font-semibold">Average Macros by Diet Type</h3>
+                    <p class="text-sm text-gray-600 mb-2">Protein / Carbs / Fat (g), averaged per diet.</p>
+                    <canvas id="barChart"></canvas>
+                </div>
+
+                <div class="bg-white p-4 shadow-lg rounded-lg">
+                    <h3 class="font-semibold">Top 5 High-Protein Recipes</h3>
+                    <p class="text-sm text-gray-600 mb-2">Protein content per recipe (selected diet).</p>
+                    <canvas id="scatterPlot"></canvas>
+                </div>
+
+                <div class="bg-white p-4 shadow-lg rounded-lg">
+                    <h3 class="font-semibold">Most Common Cuisine per Diet</h3>
+                    <p class="text-sm text-gray-600 mb-2">Distribution of dominant cuisines.</p>
+                    <canvas id="pieChart"></canvas>
+                </div>
+
+            </div>
+        </section>
+
+        <section class="mb-8">
+            <h2 class="text-2xl font-semibold mb-4">Filters and Data Interaction</h2>
+            <div class="flex flex-wrap gap-4 items-center">
+                <select id="dietFilter" class="p-2 border rounded w-full sm:w-auto">
+                    <option value="">All Diet Types</option>
+                </select>
+                <button id="refreshBtn" class="bg-gray-700 text-white py-2 px-4 rounded hover:bg-gray-800">
+                    Refresh
+                </button>
+            </div>
+        </section>
+
+        <section class="mb-8">
+            <h2 class="text-2xl font-semibold mb-4">API Data Interaction</h2>
+            <div class="flex flex-wrap gap-4 items-center">
+                <button id="fetchBtn" class="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700">
+                    Get Nutritional Insights
+                </button>
+                <span id="loadingIndicator" class="text-sm text-gray-500 hidden">Loading…</span>
+            </div>
+        </section>
+
+        <section class="mb-8">
+            <h2 class="text-2xl font-semibold mb-4">Function Metadata</h2>
+            <div class="bg-white p-4 shadow-lg rounded-lg grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+                <div>
+                    <span class="text-gray-500 block">Execution time</span>
+                    <span id="metaExecTime" class="text-xl font-semibold">—</span>
+                </div>
+                <div>
+                    <span class="text-gray-500 block">Rows processed</span>
+                    <span id="metaRowCount" class="text-xl font-semibold">—</span>
+                </div>
+                <div>
+                    <span class="text-gray-500 block">Processed at (UTC)</span>
+                    <span id="metaProcessedAt" class="text-xl font-semibold">—</span>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-blue-600 p-4 text-white text-center mt-10">
+        <p>&copy; 2026 Nutritional Insights. All Rights Reserved.</p>
+    </footer>
+
+    <script>
+        // ---- Configuration ----
+        // Replace with your deployed Azure Function URL if it ever changes.
+        const FUNCTION_URL = "https://diet-analysis-func-cpsy10.azurewebsites.net/api/getnutritionalinsights";
+
+        // ---- Chart instances (created on first load, updated after) ----
+        let barChartInstance = null;
+        let scatterChartInstance = null;
+        let pieChartInstance = null;
+
+        const statusLine = document.getElementById("statusLine");
+        const loadingIndicator = document.getElementById("loadingIndicator");
+        const dietFilter = document.getElementById("dietFilter");
+
+        function setStatus(message, isError = false) {
+            statusLine.textContent = message;
+            statusLine.className = isError
+                ? "text-sm text-red-200 mt-1"
+                : "text-sm text-blue-100 mt-1";
+        }
+
+        async function fetchInsights() {
+            loadingIndicator.classList.remove("hidden");
+            setStatus("Fetching latest insights…");
+
+            const diet = dietFilter.value;
+            const url = diet
+                ? `${FUNCTION_URL}?diet_type=${encodeURIComponent(diet)}`
+                : FUNCTION_URL;
+
+            const startedAt = performance.now();
+
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    const errBody = await response.json().catch(() => ({}));
+                    throw new Error(errBody.error || `Request failed with status ${response.status}`);
+                }
+                const data = await response.json();
+                const clientRoundTripMs = Math.round(performance.now() - startedAt);
+
+                renderCharts(data);
+                populateDietFilter(data);
+                updateMetadata(data, clientRoundTripMs);
+
+                setStatus(`Loaded successfully · ${data.row_count} rows · server execution ${data.execution_time_ms} ms`);
+            } catch (err) {
+                console.error(err);
+                setStatus(`Error: ${err.message}`, true);
+            } finally {
+                loadingIndicator.classList.add("hidden");
+            }
+        }
+
+        function populateDietFilter(data) {
+            // Only populate once so we don't wipe the user's current selection
+            if (dietFilter.dataset.populated === "true") return;
+            const diets = data.avg_macros_per_diet.map(row => row.Diet_type);
+            diets.forEach(diet => {
+                const opt = document.createElement("option");
+                opt.value = diet;
+                opt.textContent = diet.charAt(0).toUpperCase() + diet.slice(1);
+                dietFilter.appendChild(opt);
+            });
+            dietFilter.dataset.populated = "true";
+        }
+
+        function updateMetadata(data, clientRoundTripMs) {
+            document.getElementById("metaExecTime").textContent = `${data.execution_time_ms} ms (server)`;
+            document.getElementById("metaRowCount").textContent = data.row_count;
+            document.getElementById("metaProcessedAt").textContent =
+                new Date(data.processed_at).toLocaleString();
+        }
+
+        function renderCharts(data) {
+            // ---- Bar chart: average macros per diet type ----
+            const barLabels = data.avg_macros_per_diet.map(r => r.Diet_type);
+            const proteinVals = data.avg_macros_per_diet.map(r => r["Protein(g)"]);
+            const carbVals = data.avg_macros_per_diet.map(r => r["Carbs(g)"]);
+            const fatVals = data.avg_macros_per_diet.map(r => r["Fat(g)"]);
+
+            const barCtx = document.getElementById("barChart").getContext("2d");
+            if (barChartInstance) barChartInstance.destroy();
+            barChartInstance = new Chart(barCtx, {
+                type: "bar",
+                data: {
+                    labels: barLabels,
+                    datasets: [
+                        { label: "Protein (g)", data: proteinVals, backgroundColor: "#2563eb" },
+                        { label: "Carbs (g)", data: carbVals, backgroundColor: "#16a34a" },
+                        { label: "Fat (g)", data: fatVals, backgroundColor: "#9333ea" }
+                    ]
+                },
+                options: { responsive: true, plugins: { legend: { position: "bottom" } } }
+            });
+
+            // ---- "Scatter" — using top 5 protein recipes as a bar for clarity ----
+            const topRecipes = data.top_5_protein_recipes || [];
+            const scatterCtx = document.getElementById("scatterPlot").getContext("2d");
+            if (scatterChartInstance) scatterChartInstance.destroy();
+            scatterChartInstance = new Chart(scatterCtx, {
+                type: "bar",
+                data: {
+                    labels: topRecipes.map(r => r.Recipe_name),
+                    datasets: [{
+                        label: "Protein (g)",
+                        data: topRecipes.map(r => r["Protein(g)"]),
+                        backgroundColor: "#f59e0b"
+                    }]
+                },
+                options: {
+                    indexAxis: "y",
+                    responsive: true,
+                    plugins: { legend: { display: false } }
+                }
+            });
+
+            // ---- Pie chart: most common cuisine per diet ----
+            const cuisineRows = data.most_common_cuisine_per_diet || [];
+            const pieCtx = document.getElementById("pieChart").getContext("2d");
+            if (pieChartInstance) pieChartInstance.destroy();
+            pieChartInstance = new Chart(pieCtx, {
+                type: "pie",
+                data: {
+                    labels: cuisineRows.map(r => `${r.Diet_type} (${r.Cuisine_type})`),
+                    datasets: [{
+                        data: cuisineRows.map(() => 1), // equal slices; this chart shows *which* cuisine dominates each diet, not a count
+                        backgroundColor: ["#2563eb", "#16a34a", "#9333ea", "#f59e0b", "#dc2626", "#0891b2"]
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { position: "bottom" } } }
+            });
+        }
+
+        document.getElementById("fetchBtn").addEventListener("click", fetchInsights);
+        document.getElementById("refreshBtn").addEventListener("click", fetchInsights);
+        dietFilter.addEventListener("change", fetchInsights);
+    </script>
+
+</body>
+</html>
