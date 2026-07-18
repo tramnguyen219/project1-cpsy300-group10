@@ -206,16 +206,26 @@
                 }
             });
 
-            // ---- Pie chart: most common cuisine per diet ----
+            // ---- Pie chart: cuisine frequency across diets ----
+            // Fixed from equal-slice placeholder to a real count-based pie:
+            // tallies how many diets each cuisine is the "most common" for,
+            // so slice size now actually means something.
             const cuisineRows = data.most_common_cuisine_per_diet || [];
+            const cuisineCounts = {};
+            cuisineRows.forEach(r => {
+                cuisineCounts[r.Cuisine_type] = (cuisineCounts[r.Cuisine_type] || 0) + 1;
+            });
+            const cuisineLabels = Object.keys(cuisineCounts);
+            const cuisineValues = Object.values(cuisineCounts);
+
             const pieCtx = document.getElementById("pieChart").getContext("2d");
             if (pieChartInstance) pieChartInstance.destroy();
             pieChartInstance = new Chart(pieCtx, {
                 type: "pie",
                 data: {
-                    labels: cuisineRows.map(r => `${r.Diet_type} (${r.Cuisine_type})`),
+                    labels: cuisineLabels,
                     datasets: [{
-                        data: cuisineRows.map(() => 1), // equal slices; this chart shows *which* cuisine dominates each diet, not a count
+                        data: cuisineValues,
                         backgroundColor: ["#2563eb", "#16a34a", "#9333ea", "#f59e0b", "#dc2626", "#0891b2"]
                     }]
                 },
