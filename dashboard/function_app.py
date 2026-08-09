@@ -12,7 +12,8 @@ app = func.FunctionApp()
 
 CONTAINER = "diets-dataset"   
 BLOB_NAME = "All_Diets.csv"
-
+CLEANED_BLOB_NAME = "cleaned_diets.csv"
+RESULT_BLOB_NAME = "dashboard_results.json"
 
 @app.route(route="GetNutritionalInsights", auth_level=func.AuthLevel.ANONYMOUS)
 def GetNutritionalInsights(req: func.HttpRequest) -> func.HttpResponse:
