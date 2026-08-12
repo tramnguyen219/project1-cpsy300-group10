@@ -76,9 +76,9 @@ def oauth_callback(req: func.HttpRequest) -> func.HttpResponse:
     if not cfg:
         return error("Unsupported provider.", 404)
     if req.params.get("error"):
-        return _bounce(f"{FRONTEND}/login.html?error=access_denied")
+        return _bounce(f"{FRONTEND}/index.html?error=access_denied")
     if not code or not check_state(state, provider):
-        return _bounce(f"{FRONTEND}/login.html?error=bad_state")
+        return _bounce(f"{FRONTEND}/index.html?error=bad_state")
 
     tok = requests.post(cfg["token"], timeout=10,
         headers={"Accept": "application/json"},
@@ -90,7 +90,7 @@ def oauth_callback(req: func.HttpRequest) -> func.HttpResponse:
 
     access_token = tok.get("access_token")
     if not access_token:
-        return _bounce(f"{FRONTEND}/login.html?error=token_exchange_failed")
+        return _bounce(f"{FRONTEND}/index.html?error=token_exchange_failed")
 
     api = {"Authorization": f"Bearer {access_token}",
            "Accept": "application/vnd.github+json"}
@@ -109,7 +109,7 @@ def oauth_callback(req: func.HttpRequest) -> func.HttpResponse:
             email = primary["email"] if primary else None
 
     if not email:
-        return _bounce(f"{FRONTEND}/login.html?error=no_email")
+        return _bounce(f"{FRONTEND}/index.html?error=no_email")
 
     user = find_user_by_email(email)
     if not user:
@@ -118,7 +118,7 @@ def oauth_callback(req: func.HttpRequest) -> func.HttpResponse:
     else:
         touch_last_login(user)
 
-    return _bounce(f"{FRONTEND}/login.html#token={issue_token(user)}")
+    return _bounce(f"{FRONTEND}/index.html#token={issue_token(user)}")
 
 
 def _bounce(url):
