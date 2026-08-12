@@ -13,7 +13,7 @@
  
     <header class="bg-blue-600 p-4 text-white">
         <h1 class="text-3xl font-semibold">Nutritional Insights</h1>
-        <p id="statusLine" class="text-sm text-blue-100 mt-1">Not loaded yet — click "Get Nutritional Insights" below.</p>
+        <p id="statusLine" class="text-sm text-blue-100 mt-1">Not loaded yet ï¿½ click "Get Nutritional Insights" below.</p>
     </header>
  
     <main class="container mx-auto p-6">
@@ -61,7 +61,7 @@
                 <button id="fetchBtn" class="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700">
                     Get Nutritional Insights
                 </button>
-                <span id="loadingIndicator" class="text-sm text-gray-500 hidden">Loading…</span>
+                <span id="loadingIndicator" class="text-sm text-gray-500 hidden">Loadingï¿½</span>
             </div>
         </section>
  
@@ -70,15 +70,15 @@
             <div class="bg-white p-4 shadow-lg rounded-lg grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
                 <div>
                     <span class="text-gray-500 block">Execution time</span>
-                    <span id="metaExecTime" class="text-xl font-semibold">—</span>
+                    <span id="metaExecTime" class="text-xl font-semibold">ï¿½</span>
                 </div>
                 <div>
                     <span class="text-gray-500 block">Rows processed</span>
-                    <span id="metaRowCount" class="text-xl font-semibold">—</span>
+                    <span id="metaRowCount" class="text-xl font-semibold">ï¿½</span>
                 </div>
                 <div>
                     <span class="text-gray-500 block">Processed at (UTC)</span>
-                    <span id="metaProcessedAt" class="text-xl font-semibold">—</span>
+                    <span id="metaProcessedAt" class="text-xl font-semibold">ï¿½</span>
                 </div>
             </div>
         </section>
@@ -92,8 +92,7 @@
     <script>
         // ---- Configuration ----
         // Replace with your deployed Azure Function URL if it ever changes.
-        const FUNCTION_URL = "https://diet-insights-func-karan.azurewebsites.net/api/getnutritionalinsights";
- 
+        const FUNCTION_URL = "https://diet-analysis-func-cpsy10.azurewebsites.net/api/getnutritionalinsights";
         // ---- Chart instances (created on first load, updated after) ----
         let barChartInstance = null;
         let scatterChartInstance = null;
@@ -112,7 +111,7 @@
  
         async function fetchInsights() {
             loadingIndicator.classList.remove("hidden");
-            setStatus("Fetching latest insights…");
+            setStatus("Fetching latest insightsï¿½");
  
             const diet = dietFilter.value;
             const url = diet
@@ -134,7 +133,7 @@
                 populateDietFilter(data);
                 updateMetadata(data, clientRoundTripMs);
  
-                setStatus(`Loaded successfully · ${data.row_count} rows · server execution ${data.execution_time_ms} ms`);
+                setStatus(`Loaded successfully ï¿½ ${data.row_count} rows ï¿½ server execution ${data.execution_time_ms} ms`);
             } catch (err) {
                 console.error(err);
                 setStatus(`Error: ${err.message}`, true);
@@ -185,7 +184,7 @@
                 options: { responsive: true, plugins: { legend: { position: "bottom" } } }
             });
  
-            // ---- "Scatter" — using top 5 protein recipes as a bar for clarity ----
+            // ---- "Scatter" ï¿½ using top 5 protein recipes as a bar for clarity ----
             const topRecipes = data.top_5_protein_recipes || [];
             const scatterCtx = document.getElementById("scatterPlot").getContext("2d");
             if (scatterChartInstance) scatterChartInstance.destroy();

@@ -7,8 +7,12 @@ import time
 import pandas as pd
 from datetime import datetime
 from azure.storage.blob import BlobServiceClient
+from auth_routes import bp as auth_bp
+from oauth_routes import bp as oauth_bp
 
 app = func.FunctionApp()
+app.register_blueprint(auth_bp)
+app.register_blueprint(oauth_bp)
 
 CONTAINER = "diets-dataset"   
 BLOB_NAME = "All_Diets.csv"
