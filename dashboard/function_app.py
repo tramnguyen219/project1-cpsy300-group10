@@ -9,10 +9,12 @@ from datetime import datetime
 from azure.storage.blob import BlobServiceClient
 from auth_routes import bp as auth_bp
 from oauth_routes import bp as oauth_bp
+from data_routes import bp as data_bp
 
 app = func.FunctionApp()
 app.register_blueprint(auth_bp)
 app.register_blueprint(oauth_bp)
+app.register_blueprint(data_bp)
 
 CONTAINER = "diets-dataset"   
 BLOB_NAME = "All_Diets.csv"
