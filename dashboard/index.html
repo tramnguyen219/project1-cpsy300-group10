@@ -9,59 +9,7 @@
 </head>
 <body class="bg-gray-100">
 
-<!-- ==================== LOGIN / REGISTER (shown first) ==================== -->
-<div id="authView" class="min-h-screen flex items-center justify-center p-4">
-    <div class="bg-white shadow-xl rounded-lg w-full max-w-md p-8">
-
-        <h1 class="text-2xl font-bold text-gray-800">Nutritional Insights</h1>
-        <p class="text-sm text-gray-500 mt-1 mb-6">Sign in to view the dashboard.</p>
-
-        <div class="flex border-b mb-6">
-            <button id="tabLogin" class="px-4 py-2 font-semibold border-b-2 border-blue-600 text-blue-600">Login</button>
-            <button id="tabRegister" class="px-4 py-2 font-semibold border-b-2 border-transparent text-gray-500">Register</button>
-        </div>
-
-        <form id="authForm" class="space-y-4">
-            <div id="nameField" class="hidden">
-                <label for="name" class="block text-sm text-gray-600 mb-1">Full name</label>
-                <input id="name" type="text" autocomplete="name"
-                       class="p-2 border rounded w-full" placeholder="Karan Pabla">
-            </div>
-            <div>
-                <label for="email" class="block text-sm text-gray-600 mb-1">Email</label>
-                <input id="email" type="email" required autocomplete="email"
-                       class="p-2 border rounded w-full" placeholder="you@example.com">
-            </div>
-            <div>
-                <label for="password" class="block text-sm text-gray-600 mb-1">Password</label>
-                <input id="password" type="password" required minlength="8" autocomplete="current-password"
-                       class="p-2 border rounded w-full" placeholder="At least 8 characters">
-            </div>
-
-            <p id="authError" class="text-sm text-red-600 hidden"></p>
-
-            <button id="authSubmit" type="submit"
-                    class="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 disabled:opacity-50">
-                Login
-            </button>
-        </form>
-
-        <div class="flex items-center my-6">
-            <div class="flex-grow border-t"></div>
-            <span class="px-3 text-xs text-gray-400 uppercase">or continue with</span>
-            <div class="flex-grow border-t"></div>
-        </div>
-
-        <div class="space-y-3">
-            <button data-provider="google" class="oauthBtn w-full border py-2 px-4 rounded hover:bg-gray-50 font-medium text-gray-700">
-                Continue with Google
-            </button>
-            <button data-provider="github" class="oauthBtn w-full border py-2 px-4 rounded hover:bg-gray-50 font-medium text-gray-700">
-                Continue with GitHub
-            </button>
-        </div>
-    </div>
-</div>
+<!-- Sign-in lives in login.html. This page bounces there unless a valid token is present. -->
 
 <!-- ==================== DASHBOARD (hidden until authenticated) ==================== -->
 <div id="dashView" class="hidden">
@@ -87,9 +35,10 @@
 
     <div id="demoBanner" class="hidden bg-amber-100 border-b border-amber-300 text-amber-900 text-sm">
         <div class="container mx-auto px-4 py-2">
-            <strong>Demo mode.</strong> The Phase 3 backend is not reachable, so this page is running on a
-            small built-in sample. Login is simulated in the browser and is <strong>not</strong> secure &mdash;
-            it exists only so the UI can be demonstrated before the API is deployed.
+            <strong>Sample data.</strong> The dashboard endpoints
+            (<code>GetDashboardResults</code> / <code>GetRecipes</code>) are not deployed yet, so the charts
+            and recipe table below are running on a small built-in sample. Sign-in is real &mdash; you are
+            logged in against the live auth API.
         </div>
     </div>
 
@@ -202,6 +151,8 @@
 // Endpoint shapes are documented in dashboard/API-CONTRACT.md
 // =====================================================================
 const CONFIG = {
+// Must be the same function app login.html posts to, or the token it issued
+    // will not be accepted here.
     API_BASE: "http://localhost:7071/api",
     ENDPOINTS: {
         register:   "/auth/register",
@@ -210,20 +161,22 @@ const CONFIG = {
         oauthStart: "/auth/{provider}/start",
         results:    "/GetDashboardResults",
         recipes:    "/GetRecipes"
+
     },
-    // When the backend cannot be reached, fall back to a built-in sample so the
-    // UI is still demonstrable. Set to false once the API is deployed.
+    LOGIN_PAGE: "login.html",
+    // Applies to the data endpoints only. Auth is never faked: no token means
+    // back to login.html. Set false once GetDashboardResults/GetRecipes exist.
     ALLOW_DEMO_FALLBACK: true
 };
 
-const STORAGE_KEY = "ni_session";
+// Same key and raw-JWT format login.html writes, so the session carries over.
+const STORAGE_KEY = "token";
 
 // ---------------------------------------------------------------- state
 const state = {
     token: null,
     user: null,
     demo: false,
-    mode: "login",          // "login" | "register"
     page: 1,
     pageSize: 10,
     q: "",
@@ -233,7 +186,18 @@ const state = {
 
 // ---------------------------------------------------------------- dom
 const $ = id => document.getElementById(id);
-const authView = $("authView"), dashView = $("dashView");
+const dashView = $("dashView");
+
+// Read the display claims out of the JWT payload. Used only to label the UI when
+// /auth/me is unreachable — the token is still verified server-side on every call.
+function decodeToken(token) {
+    try {
+        const p = JSON.parse(atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/")));
+        return { name: p.name || "", email: p.email || "", provider: p.prov || "" };
+    } catch {
+        return { name: "", email: "" };
+    }
+}
 
 // ---------------------------------------------------------------- http
 async function api(path, { method = "GET", body = null, auth = true } = {}) {
@@ -264,150 +228,59 @@ function isBackendMissing(err) {
 }
 
 // =====================================================================
-// AUTH
+// AUTH GATE
+// Sign-in happens in login.html. This page only verifies the token it left
+// behind and bounces back there if there isn't a valid one.
 // =====================================================================
-function setSession(token, user, demo = false) {
-    state.token = token;
-    state.user = user;
-    state.demo = demo;
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ token, user, demo }));
-}
-
-function clearSession() {
-    state.token = null;
-    state.user = null;
-    state.demo = false;
+function goToLogin(reason) {
     sessionStorage.removeItem(STORAGE_KEY);
-}
-
-function showAuth() {
-    dashView.classList.add("hidden");
-    authView.classList.remove("hidden");
+    location.replace(CONFIG.LOGIN_PAGE + (reason ? `?error=${encodeURIComponent(reason)}` : ""));
 }
 
 function showDashboard() {
-    authView.classList.add("hidden");
     dashView.classList.remove("hidden");
     $("userName").textContent = state.user.name || state.user.email;
-    $("userEmail").textContent = state.user.email;
+    $("userEmail").textContent = state.user.provider && state.user.provider !== "local"
+        ? `${state.user.email} · via ${state.user.provider}`
+        : state.user.email;
     $("demoBanner").classList.toggle("hidden", !state.demo);
     loadDashboard();
 }
 
-function authError(msg) {
-    const el = $("authError");
-    el.textContent = msg;
-    el.classList.toggle("hidden", !msg);
-}
+$("logoutBtn").addEventListener("click", () => goToLogin());
 
-function setMode(mode) {
-    state.mode = mode;
-    const isRegister = mode === "register";
-    $("nameField").classList.toggle("hidden", !isRegister);
-    $("name").required = isRegister;
-    $("password").autocomplete = isRegister ? "new-password" : "current-password";
-    $("authSubmit").textContent = isRegister ? "Create account" : "Login";
+// oauth_routes.py redirects here as #token=<jwt> on success and ?error=<slug>
+// on failure. Capture the token, then scrub it from the address bar.
+function consumeOAuthRedirect() {
+    const err = new URLSearchParams(location.search).get("error");
+    if (err) { goToLogin(err); return; }
 
-    const on = "px-4 py-2 font-semibold border-b-2 border-blue-600 text-blue-600";
-    const off = "px-4 py-2 font-semibold border-b-2 border-transparent text-gray-500";
-    $("tabLogin").className = isRegister ? off : on;
-    $("tabRegister").className = isRegister ? on : off;
-    authError("");
-}
+    const token = new URLSearchParams(location.hash.slice(1)).get("token");
+    if (!token) return;
 
-$("tabLogin").addEventListener("click", () => setMode("login"));
-$("tabRegister").addEventListener("click", () => setMode("register"));
-
-$("authForm").addEventListener("submit", async e => {
-    e.preventDefault();
-    authError("");
-    const btn = $("authSubmit");
-    btn.disabled = true;
-
-    const email = $("email").value.trim();
-    const password = $("password").value;
-    const name = $("name").value.trim();
-
-    try {
-        const path = state.mode === "register" ? CONFIG.ENDPOINTS.register : CONFIG.ENDPOINTS.login;
-        const payload = state.mode === "register" ? { name, email, password } : { email, password };
-        const data = await api(path, { method: "POST", body: payload, auth: false });
-        setSession(data.token, data.user);
-        showDashboard();
-    } catch (err) {
-        // A missing backend means the API is not deployed yet; a real 401/409
-        // is a genuine auth error and must be shown to the user as-is.
-        if (isBackendMissing(err)) {
-            setSession("demo-token", { name: name || email.split("@")[0], email }, true);
-            showDashboard();
-        } else {
-            authError(err.message);
-        }
-    } finally {
-        btn.disabled = false;
-    }
-});
-
-document.querySelectorAll(".oauthBtn").forEach(btn => {
-    btn.addEventListener("click", () => {
-        const provider = btn.dataset.provider;
-        const redirect = location.origin + location.pathname;
-        const path = CONFIG.ENDPOINTS.oauthStart.replace("{provider}", provider);
-        location.href = `${CONFIG.API_BASE}${path}?redirect_uri=${encodeURIComponent(redirect)}`;
-    });
-});
-
-$("logoutBtn").addEventListener("click", () => {
-    clearSession();
-    $("authForm").reset();
-    setMode("login");
-    showAuth();
-});
-
-// Read an OAuth redirect back from the fragment, then scrub it from the address bar
-function consumeOAuthFragment() {
-    if (!location.hash || location.hash.length < 2) return false;
-    const p = new URLSearchParams(location.hash.slice(1));
-    const err = p.get("error");
-    const token = p.get("token");
-    history.replaceState(null, "", location.pathname + location.search);
-
-    if (err) { authError(err); return false; }
-    if (!token) return false;
-
-    setSession(token, { name: p.get("name") || "", email: p.get("email") || "" });
-    return true;
+    sessionStorage.setItem(STORAGE_KEY, token);
+    history.replaceState(null, "", location.pathname);
 }
 
 async function init() {
-    setMode("login");
+    consumeOAuthRedirect();
 
-    if (consumeOAuthFragment()) { showDashboard(); return; }
+    state.token = sessionStorage.getItem(STORAGE_KEY);
+    if (!state.token) { goToLogin(); return; }
 
-    const saved = sessionStorage.getItem(STORAGE_KEY);
-    if (!saved) { showAuth(); return; }
-
-    const session = JSON.parse(saved);
-    state.token = session.token;
-    state.user = session.user;
-    state.demo = session.demo;
-
-    if (session.demo) { showDashboard(); return; }
-
-    // Re-validate the token so a stale session does not show a broken dashboard
+    // login.html stores only the token, so fetch the profile for the name shown
+    // top right. A 401 means the token is stale or forged — back to login.
     try {
         const data = await api(CONFIG.ENDPOINTS.me);
         state.user = data.user;
-        showDashboard();
     } catch (err) {
-        if (isBackendMissing(err)) {
-            state.demo = true;
-            showDashboard();
-        } else {
-            clearSession();
-            showAuth();
-        }
+        if (!isBackendMissing(err)) { goToLogin("session_expired"); return; }
+        // Auth is unreachable rather than rejecting us: keep the identity the
+        // token already carries and use sample data for the charts.
+        state.demo = true;
+        state.user = decodeToken(state.token);
     }
+    showDashboard();
 }
 
 // =====================================================================

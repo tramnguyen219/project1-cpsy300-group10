@@ -44,11 +44,23 @@
     <button id="googleBtn" class="border py-2 px-4 rounded w-full mb-2 font-medium hover:bg-gray-50">
       Continue with Google
     </button>
+    <button id="githubBtn" class="border py-2 px-4 rounded w-full mb-2 font-medium hover:bg-gray-50">
+      Continue with GitHub
+    </button>
   </div>
 
 <script>
 const API = "https://diet-analysis-func-cpsy10.azurewebsites.net/api";
 let mode = "login";
+
+// Slugs come from oauth_routes.py, plus session_expired sent back by index.html
+const ERRORS = {
+  access_denied:         "You cancelled the sign-in.",
+  bad_state:             "That sign-in link expired. Please try again.",
+  token_exchange_failed: "Could not complete sign-in with that provider. Please try again.",
+  no_email:              "That account has no verified email address, so it cannot be used to sign in.",
+  session_expired:       "Your session expired. Please sign in again."
+};
 
 function showError(msg) {
   const box = document.getElementById("errorBox");
@@ -61,11 +73,11 @@ function showError(msg) {
   if (m) {
     sessionStorage.setItem("token", m[1]);
     history.replaceState(null, "", location.pathname);
-    location.href = "dashboard.html";
+    location.href = "index.html";
     return;
   }
   const err = new URLSearchParams(location.search).get("error");
-  if (err) showError("Sign-in failed: " + err);
+  if (err) showError(ERRORS[err] || ("Sign-in failed: " + err));
 })();
 
 document.getElementById("tabLogin").onclick = () => setMode("login");
@@ -104,16 +116,19 @@ document.getElementById("authForm").onsubmit = async (e) => {
     if (!res.ok) { showError(data.error || "Something went wrong."); return; }
 
     sessionStorage.setItem("token", data.token);
-    location.href = "dashboard.html";
+    location.href = "index.html";
   } catch {
     showError("Could not reach the server. Is the backend running?");
   } finally {
+    // Restore the button only. Calling setMode() here would re-hide #errorBox
+    // and swallow the message showError() just put on screen.
     btn.disabled = false;
-    setMode(mode);
+    btn.textContent = mode === "register" ? "Create account" : "Log in";
   }
 };
 
 document.getElementById("googleBtn").onclick = () => location.href = `${API}/auth/google/start`;
+document.getElementById("githubBtn").onclick = () => location.href = `${API}/auth/github/start`;
 </script>
 </body>
 </html>
