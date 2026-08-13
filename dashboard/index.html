@@ -202,12 +202,12 @@
 // Endpoint shapes are documented in dashboard/API-CONTRACT.md
 // =====================================================================
 const CONFIG = {
-    API_BASE: "https://diet-insights-func-karan.azurewebsites.net/api",
+    API_BASE: "http://localhost:7071/api",
     ENDPOINTS: {
         register:   "/auth/register",
         login:      "/auth/login",
         me:         "/auth/me",
-        oauthStart: "/auth/oauth/{provider}/start",
+        oauthStart: "/auth/{provider}/start",
         results:    "/GetDashboardResults",
         recipes:    "/GetRecipes"
     },

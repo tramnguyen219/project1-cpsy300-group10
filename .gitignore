@@ -1,0 +1,24 @@
+# secrets - never commit
+local.settings.json
+*.env
+.env
+
+# python
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# node (if any frontend tooling)
+node_modules/
+
+# editor
+.vscode/
+.idea/
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# logs
+*.log
